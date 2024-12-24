@@ -1,0 +1,80 @@
+﻿@page "/GardensList"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.GardensService GardensService 
+<h3>Gardens</h3>
+<NavLink href="/AddGardens">Add Gardens</NavLink>
+
+@if (Gardens == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="w-100">
+        <SearchBar Items="Gardens" OnSearch="SearchedGardens"></SearchBar>
+    </div>
+    <table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+        <tr>
+            <th>Garden Name</th>
+            <th>City</th>
+            <th>Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (wantedGardens != null && wantedGardens.Any())
+        {
+            @foreach (var Garden in wantedGardens)
+            {
+                <tr>
+                    <td ><a href="/PlotsList/@Garden.GardenId">@Garden.GardenName</a></td>
+                    <td> @Garden.City</td>
+                    <td>@Garden.Address</td>
+                    <td><a class="btn bg-warning btn-sm" href="/BannedCropsList/@Garden.GardenId">Ban Crop</a></td>
+                    <td><a class="btn bg-warning btn-sm" href="/UpdateGardens/@Garden.GardenId">Update</a></td>
+                    <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteClub(Garden.GardenId)">Delete</button>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3">
+                    Gardens not Found!
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Gardens> Gardens = new();
+    List<Gardens> wantedGardens= new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Gardens = await GardensService.GetAllAsync();
+        wantedGardens = Gardens.ToList();
+    }
+    private async Task DeleteClub(int gardenId)
+    {
+        await GardensService.DeleteGardenAsync(gardenId);
+        Gardens = await GardensService.GetAllAsync();
+    }
+    
+    void SearchedGardens(string searchTerm)
+    {
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            wantedGardens = Gardens.ToList();
+        }
+        else
+        {
+            wantedGardens = Gardens.Where(Garden=> Garden.GardenName.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase) || 
+                                                   Garden.City.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+}

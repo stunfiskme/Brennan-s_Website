@@ -1,0 +1,85 @@
+﻿@page "/BannedCropsList/{GardenId:int}"
+@using BrennansWebsite.Models
+@inject Services.BannedCropsService BannedCropsService 
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer 
+<h3>List of Banned Crops</h3>
+
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+
+<button class="btn btn-secondary" @onclick="backToBanCrop">Ban a Crop</button>
+<br/>
+<div class="w-100">
+    <SearchBar Items="BannedCrops" OnSearch="SearchedGardens"></SearchBar>
+</div>
+
+<table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>Crop Name</th>
+                </tr>
+            </thead>
+    <tbody>
+    @if (_wantedCrops != null && _wantedCrops.Any())
+    {
+        @foreach (var bannedCrops in _wantedCrops)
+        {
+            <tr>
+            <td>@bannedCrops.CropName</td>
+                <td><a class="btn bg-warning btn-sm"  href="/updateCropsAllowed/@bannedCrops.GardenId/@bannedCrops.bannedID">Update</a></td>
+                <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteCrop(bannedCrops.bannedID)">Delete</button>
+                    </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="1">
+                Crops not Found!
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+
+@code {
+    private List<BannedCrops> BannedCrops = new();
+    //wanted as in searched for or all by default 
+    List<BannedCrops> _wantedCrops = new();
+    [Parameter]
+    public int GardenId { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        BannedCrops = await BannedCropsService.GetTheOnesInThisGardenAsync(GardenId);
+        _wantedCrops = BannedCrops.ToList();
+
+    }
+    private async Task DeleteCrop(int bannedID)
+    {
+        await BannedCropsService.DeleteAsync(bannedID);
+        BannedCrops = await BannedCropsService.GetTheOnesInThisGardenAsync(GardenId);
+    }
+    
+    void SearchedGardens(string searchTerm)
+    {
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            _wantedCrops = BannedCrops.ToList();
+        }
+        else
+        {
+            _wantedCrops = BannedCrops.Where(CropsAllowed => CropsAllowed.CropName.Contains
+                (searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    
+    private async Task backToBanCrop()
+    {
+        NavigationManager.NavigateTo($"/BanACrop/{GardenId}");
+    }
+    
+}

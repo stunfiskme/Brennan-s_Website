@@ -1,0 +1,59 @@
+﻿@page "/ClaimedByList/{GardenerId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.ClaimedByService ClaimedByService 
+@inject Services.PlotsServices PlotsServices 
+
+<h3>Claim a Plot</h3>
+
+<NavLink href="/GardenersList">Gardeners</NavLink>
+<table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>Your Plots</th>
+                </tr>
+            </thead>
+    <tbody>
+    @if (ClaimedBy != null && ClaimedBy.Any())
+    {
+        @foreach (var ClaimedBy in ClaimedBy)
+        {
+            <tr>
+                <td>@GetPlotName(ClaimedBy.PlotsId)</td>
+                <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(ClaimedBy.PlotsId, ClaimedBy.Id)">Free plot</button></td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="2">
+                No plots here!
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] 
+    public int GardenerId { get; set; }
+    private List<ClaimedBy> ClaimedBy = new();
+    private Dictionary<int, string> PlotNames = new();
+    
+    protected override async Task OnInitializedAsync()
+    {
+      
+        ClaimedBy = await ClaimedByService.GetTheOnesForThisGardenerAsync(GardenerId);
+    }
+    private async Task Delete(int plotid , int GardenerId)
+    {
+        await ClaimedByService.DeleteAsync(plotid, GardenerId);
+        ClaimedBy = await ClaimedByService.GetTheOnesForThisGardenerAsync(GardenerId);
+    }
+
+    private string GetPlotName(int plotId)
+    {
+        return PlotNames.TryGetValue(plotId, out var name) ? name : "Unknown";
+    }
+}

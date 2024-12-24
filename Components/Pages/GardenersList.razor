@@ -1,0 +1,55 @@
+﻿@page "/GardenersList"
+@using BrennansWebsite.Models
+@inject Services.GardenersService GardenersService
+<h3>Gardeners List</h3>
+@rendermode InteractiveServer 
+
+<NavLink href="/AddGardener">Add Gardeners</NavLink>
+
+ <table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>  
+                </tr>
+            </thead>
+    <tbody>
+    @if (Gardeners != null && Gardeners.Any())
+    {
+        @foreach (var Gardener in Gardeners)
+        {
+            <tr>
+                <td>@Gardener.FirstName</td>
+                <td> @Gardener.LastName</td>
+                <td><a href="/ClaimedByList/@Gardener.Id">Claims</a></td>
+                <td><a href="/UpdateGardeners/@Gardener.Id">Update</a></td>
+                <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteClub(Gardener.Id)">Delete</button>
+                    </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="2">
+                Gardeners not Found!
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+@code {
+    private List<Gardener> Gardeners = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Gardeners = await GardenersService.GetAllAsync();
+    }
+    private async Task DeleteClub(int gardenId)
+    {
+        await GardenersService.DeleteAsync(gardenId);
+        Gardeners = await GardenersService.GetAllAsync();
+    }
+}

@@ -1,0 +1,8 @@
+﻿.defined-area {
+    width: 500px;  /* Set the width of the div */
+    height: 300px; /* Set the height of the div */
+    background-color: lightblue; /* For visual styling */
+    border: 5px solid black;
+    padding: 20px; /* Add some space inside the div */
+    box-sizing: border-box; /* Includes padding and border in the width and height calculation */
+}

@@ -1,0 +1,45 @@
+﻿@page "/UpdateGardeners/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.GardenersService GardenersService
+<h3>Update Gardeners</h3>
+
+@if (Gardeners == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="form-group">
+        <label for="First Name">First Name</label>
+        <InputText @bind-Value="Gardeners.FirstName" class="form-control" id="First Name" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="Last Name">Last Name</label>
+        <InputText @bind-Value="Gardeners.LastName" class="form-control" id="Last Name" />
+    </div>
+    <br/>
+    <button class="btn btn-secondary" @onclick="Submit">Save</button>
+}
+<br/>
+<NavLink href="/GardenersList">Back to Gardener's List</NavLink>
+
+
+@code {
+    [Parameter] public int GardenId { get; set; }
+
+    private Gardener Gardeners;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Gardeners = await GardenersService.GetByIdAsync(GardenId);
+    }
+
+    private async Task Submit()
+    {
+        await GardenersService.UpdateAsync(Gardeners);
+
+    }
+
+}

@@ -1,0 +1,41 @@
+﻿@page "/AddPlots/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Data.ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+<h3>Add Plots to a garden</h3>
+
+<EditForm Model="@plots" OnValidSubmit="SubmitForm" FormName="plotsForm" >
+    <div class="form-group">
+        <label for="PlotName">Plots Name</label>
+        <InputText @bind-Value="plots.PlotName" class="form-control" id="PlotName" />
+    </div>
+    <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+</EditForm>
+<br/>
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+<br/>
+<button class="btn btn-secondary" @onclick="backToList">Back to Plots List</button>
+@code {
+    [Parameter]
+    public int GardenId { get; set; }
+    Plots plots = new();
+    // Set the GardenId for the plot
+    protected override void OnParametersSet()
+    {
+        plots.GardenId = GardenId; 
+    }
+    //adds plot
+    private async Task SubmitForm()
+    {
+        DbContext.Plots.Add(plots);
+        await DbContext.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+    private async Task backToList()
+    {
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+   
+}

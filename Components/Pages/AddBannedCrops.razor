@@ -1,0 +1,41 @@
+﻿@page "/BanACrop/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Data.ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+<h3>Ban a Crop</h3>
+
+<EditForm Model="@BannedCrops" OnValidSubmit="SubmitForm" FormName="banCropForm" >
+    <div class="form-group">
+        <label for="Crop Name">Crop Name</label>
+        <InputText @bind-Value="BannedCrops.CropName" class="form-control" id="Crop Name" />
+    </div>
+    <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+</EditForm>
+<br/>
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+<br/>
+<button class="btn btn-secondary" @onclick="backToList">Back to Banned Crops List</button>
+@code {
+    [Parameter]
+    public int GardenId { get; set; }
+    BannedCrops BannedCrops = new();
+    // Set the GardenId for the plot
+    protected override void OnParametersSet()
+    {
+        BannedCrops.GardenId = GardenId; 
+    }
+    //ban crop
+    private async Task SubmitForm()
+    {
+        DbContext.BannedCrops.Add(BannedCrops);
+        await DbContext.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/BannedCropsList/{GardenId}");
+    }
+    private async Task backToList()
+    {
+        NavigationManager.NavigateTo($"/BannedCropsList/{GardenId}");
+    }
+   
+}

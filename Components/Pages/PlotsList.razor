@@ -1,0 +1,64 @@
+﻿@page "/PlotsList/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.PlotsServices PlotsServices 
+@inject NavigationManager NavigationManager
+<h3>Plots List</h3>
+
+<button class="btn btn-secondary" @onclick="backToAddPlot">Add a Plot</button>
+
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+<table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>Name of Plot</th>
+                </tr>
+            </thead>
+    <tbody>
+    @if (Plots != null && Plots.Any())
+    {
+        @foreach (var Plot in Plots)
+        {
+            <tr>
+                <td><a href="GrowingCropsList/@Plot.PlotId/@Plot.GardenId">@Plot.PlotName</a></td>
+                 <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td>
+                <td><a href="/UpdatePlots/@Plot.PlotId">Update</a></td>
+                <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete (Plot.PlotId)">Delete</button>
+                    </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="2">
+                No plots here!
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public int GardenId { get; set; }
+    private List<Plots> Plots = new();
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        Plots = await PlotsServices.GetTheOnesInThisGardenAsync(GardenId);
+        
+    }
+
+    private async Task Delete(int plotid)
+    {
+        await PlotsServices.DeleteAsync(plotid);
+        Plots = await PlotsServices.GetTheOnesInThisGardenAsync(GardenId);
+    }
+    
+    private async Task backToAddPlot()
+    {
+        NavigationManager.NavigateTo($"/AddPlots/{GardenId}");
+    }
+}

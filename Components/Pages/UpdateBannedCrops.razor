@@ -1,0 +1,55 @@
+﻿@page "/updateCropsAllowed/{GardenId:int}/{bannedID:int}"
+@using BrennansWebsite.Models
+@inject Services.BannedCropsService BannedCropsService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer 
+<h3>Update Crops Allowed</h3>
+
+@if (BannedCrops == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="form-group">
+        <label for="CropName">Crop Name</label>
+        <InputText @bind-Value="BannedCrops.CropName" class="form-control" id="CropName" />
+    </div>
+    <br/>
+    <button class="btn btn-secondary" @onclick="Submit">Save</button>
+}
+<br/>
+<button class="btn btn-secondary" @onclick="backToList">Back to Banned Crops List</button>
+<br/>
+<button class="btn btn-secondary" @onclick="backToGardens">Gardens</button>
+@code {
+    [Parameter]
+    public int gardenid { get; set; }
+    [Parameter]
+    public int bannedID { get; set; }
+    
+    private BannedCrops BannedCrops;
+
+    private string newCropName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        BannedCrops = await BannedCropsService.GetByIdAsync(bannedID);
+    }
+    
+    private async Task Submit()
+    {
+        await BannedCropsService.UpdateAsync(BannedCrops);
+        
+    }
+
+    private async Task backToList()
+    {
+        NavigationManager.NavigateTo($"/BannedCropsList/{gardenid}");
+    }
+    
+    private async Task backToGardens()
+    {
+        NavigationManager.NavigateTo("GardensList");
+    }
+}

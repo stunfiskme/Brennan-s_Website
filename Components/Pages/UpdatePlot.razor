@@ -1,0 +1,55 @@
+﻿@page "/UpdatePlots/{PlotId:int}"
+@using BrennansWebsite.Models
+@inject Services.PlotsServices PlotsServices
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer 
+<h3>Update Plot</h3>
+
+
+@if (plots == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="form-group">
+        <label for="plots">Garden Name</label>
+        <InputText @bind-Value="plots.PlotName" class="form-control" id="plots" />
+    </div>
+    <br/>
+    <button class="btn btn-secondary" @onclick="Submit">Save</button>
+}
+<br/>
+<button class="btn btn-secondary" @onclick="backToList">Back to Plots List</button>
+<br/>
+<button class="btn btn-secondary" @onclick="backToGardens">Gardens</button>
+@code {
+    [Parameter]
+    public int PlotId { get; set; }
+
+    int gardenid;
+   
+    private Plots plots;
+
+    protected override async Task OnInitializedAsync()
+    {
+        plots = await PlotsServices.GetByIdAsync(PlotId);
+        gardenid = plots.GardenId;
+    }
+    
+    private async Task Submit()
+    {
+        await PlotsServices.UpdateAsync(plots);
+        
+    }
+
+    private async Task backToList()
+    {
+        NavigationManager.NavigateTo($"/PlotsList/{gardenid}");
+    }
+    
+    private async Task backToGardens()
+    {
+        NavigationManager.NavigateTo("GardensList");
+    }
+}
