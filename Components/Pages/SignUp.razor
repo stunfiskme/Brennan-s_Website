@@ -1,0 +1,42 @@
+﻿@page "/SignUp"
+@using BrennansWebsite.Models
+@inject Data.ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer 
+<h3>Sign Up</h3>
+
+<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" >
+<div class="form-group">
+            <label for="User Name">User Name</label>
+            <InputText @bind-Value="UserAccount.Username" class="form-control" id="User Name" />
+        </div>
+        <br/>
+        <div class="form-group">
+                    <label for="password">Password</label>
+                    <InputText @bind-Value="UserAccount.Password" class="form-control" id="password" />
+                </div>
+        <br/>
+    <div class="form-group">
+        <label for="FirstName">First Name</label>
+        <InputText @bind-Value="Gardener.FirstName" class="form-control" id="FirstName" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="LastName">Last Name</label>
+        <InputText @bind-Value="Gardener.LastName" class="form-control" id="LastName" />
+    </div>
+ <input type="submit" class="btn btn-primary" value="Save"/>
+        </EditForm>
+@code {
+    UserAccount UserAccount = new();
+    Gardener Gardener = new();
+    private async Task SubmitForm()
+    {
+        DbContext.UserAccount.Add(UserAccount);
+        await DbContext.SaveChangesAsync();
+        Gardener.userId = UserAccount.userId;
+        DbContext.Gardeners.Add(Gardener);
+        await DbContext.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/");
+    }
+}

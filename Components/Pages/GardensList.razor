@@ -3,8 +3,13 @@
 @rendermode InteractiveServer 
 @inject Services.GardensService GardensService 
 <h3>Gardens</h3>
-<NavLink href="/AddGardens">Add Gardens</NavLink>
 
+
+<AuthorizeView Roles="admin">
+<Authorized>
+ <a class="btn bg-warning btn-sm" href="/AddGardens">Add Gardens</a>
+                            </Authorized>
+                    </AuthorizeView>
 @if (Gardens == null)
 {
     <p><em>Loading...</em></p>
@@ -31,10 +36,15 @@ else
                     <td ><a href="/PlotsList/@Garden.GardenId">@Garden.GardenName</a></td>
                     <td> @Garden.City</td>
                     <td>@Garden.Address</td>
-                    <td><a class="btn bg-warning btn-sm" href="/BannedCropsList/@Garden.GardenId">Ban Crop</a></td>
-                    <td><a class="btn bg-warning btn-sm" href="/UpdateGardens/@Garden.GardenId">Update</a></td>
-                    <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteClub(Garden.GardenId)">Delete</button>
-                    </td>
+                    <AuthorizeView Roles="admin">
+                        <Authorized>
+                            <td><a class="btn bg-warning btn-sm" href="/UpdateGardens/@Garden.GardenId">Update</a></td>
+                            <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteClub(Garden.GardenId)">Delete</button>
+                            </td>
+                            </Authorized>
+                    </AuthorizeView>
+                    <td><a class="btn bg-warning btn-sm" href="/BannedCropsList/@Garden.GardenId">Banned Crops</a></td>
+                   
                 </tr>
             }
         }

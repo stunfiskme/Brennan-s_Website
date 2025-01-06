@@ -3,8 +3,9 @@
 @rendermode InteractiveServer 
 @inject NavigationManager NavigationManager
 @inject Data.ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "admin, leader , user") ]
 <h3>Add a Crop to this plot</h3>
-
+<button class="btn btn-secondary" @onclick="backToPlotsList">Plot's List</button>
 <EditForm Model="@CropsGrowing" OnValidSubmit="SubmitForm" FormName="growCropsForm" >
     <div class="form-group">
         <label for="cropName">Crop Name</label>
@@ -31,11 +32,14 @@
         CropsGrowing.PlotsId = PlotId; 
     }
     //add a crop to a plot
-    //adds plot
     private async Task SubmitForm()
     {
         DbContext.CropsGrowing.Add(CropsGrowing);
         await DbContext.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+    private async Task backToPlotsList()
+    {
         NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
     }
 }

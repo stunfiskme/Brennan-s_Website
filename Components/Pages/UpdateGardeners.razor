@@ -2,6 +2,7 @@
 @using BrennansWebsite.Models
 @rendermode InteractiveServer 
 @inject Services.GardenersService GardenersService
+@attribute [Authorize(Roles = "admin") ]
 <h3>Update Gardeners</h3>
 
 @if (Gardeners == null)
@@ -23,7 +24,7 @@ else
     <button class="btn btn-secondary" @onclick="Submit">Save</button>
 }
 <br/>
-<NavLink href="/GardenersList">Back to Gardener's List</NavLink>
+<NavLink href="/UserAccountList">User Account List</NavLink>
 
 
 @code {

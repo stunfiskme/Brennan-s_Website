@@ -14,11 +14,12 @@ public class Gardens
     
     public string Address { get; set; }
     
-    //Navigation properties 
-    [ForeignKey("Gardener")]
-    public int? Id { get; set; }
+    //fk to gardens
+    public int? LeaderId { get; set; }
     
-    public Gardener? Gardener { get; set; }
+    //Navigation properties 
+    [ForeignKey(nameof(LeaderId))]
+    public Gardener? Leader { get; set; }
     
     public ICollection<Plots> Plots { get; set; }
     

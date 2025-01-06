@@ -1,0 +1,56 @@
+﻿@page "/Login"
+@using BrennansWebsite.Components.Pages.ViewModels
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@inject NavigationManager NavigationManager
+@inject Data.ApplicationDbContext DbContext
+<h3>Login</h3>
+
+<EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="LoginForm">
+<div>
+    <label>User Name</label>
+    <InputText @bind-Value="@Model.UserName" placeholder="User Name"></InputText>
+    <ValidationMessage For="() => Model.UserName"></ValidationMessage>
+</div>
+<div>
+    <label>Password</label>
+    <InputText @bind-Value="@Model.Password" placeholder="Password"></InputText>
+    <ValidationMessage For="() => Model.Password"></ValidationMessage>
+</div>
+<div class="mb-3 text-center">
+    <span class="text-danger">@errorMessage</span>
+</div>
+<button type="submit" class=" btn btn-primary">Login</button>
+</EditForm>
+<br/>
+<NavLink href="/SignUp">Sign up</NavLink>
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+    [SupplyParameterFromForm] 
+    public LoginViewModel Model { get; set; } = new();
+
+    private string? errorMessage;
+    private async Task Authenticate()
+    {
+        var UserAccount = DbContext.UserAccount.Where(ua => ua.Username == Model.UserName).FirstOrDefault();
+        if (UserAccount is null || UserAccount.Password != Model.Password)
+        {
+            errorMessage = "Invalid User Name or Password!";
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, Model.UserName),
+            new Claim(ClaimTypes.Role, UserAccount.role),
+            new Claim("UserId", UserAccount.userId.ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principle = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(principle);
+        NavigationManager.NavigateTo("/");
+    }
+}

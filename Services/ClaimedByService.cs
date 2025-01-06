@@ -1,7 +1,7 @@
 ﻿using BrennansWebsite.Data;
 using BrennansWebsite.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-
 namespace BrennansWebsite.Services;
 
 public class ClaimedByService
@@ -25,6 +25,11 @@ public class ClaimedByService
         ClaimedBy = ClaimedBy.Where(ClaimedBy => ClaimedBy.Id == Id).ToList();
         return ClaimedBy;
     }
+    //get the claims for this gardeners along with the plot and gardener name/s 
+    public async Task<List<ClaimedBy>> GetAllInfo(int gardenerId)
+    {
+        return await _context.ClaimedBys.Where(ClaimedBy => ClaimedBy.Id == gardenerId).Include(b => b.Plots).ToListAsync();
+    }
     // get one by id
     public async Task<ClaimedBy> GetByIdAsync(int PlotsId, int Id)
     {
@@ -40,11 +45,23 @@ public class ClaimedByService
 //delete a claim
     public async Task DeleteAsync(int PlotsId, int Id)
     {
-        var ClaimedBy = await _context.ClaimedBys.FindAsync();
+        var ClaimedBy = await _context.ClaimedBys.FindAsync(PlotsId ,Id);
         if (ClaimedBy != null)
         {
             _context.ClaimedBys.Remove(ClaimedBy);
             await _context.SaveChangesAsync();
         }
+    }
+    //get all the claimed plots in the garden
+    public async Task<List<ClaimedBy>> GetTheOnesForThisGardenAsync(int gardenId)
+    {
+        string query = "SELECT * FROM ClaimedBys JOIN Plots ON Plots.PlotId = ClaimedBys.PlotsId WHERE Plots.GardenId = @gardenId";
+        var parameters = new[]
+        {
+            new SqlParameter("@gardenId", gardenId)
+        };
+        var result = await _context.ClaimedBys
+            .FromSqlRaw(query, parameters).ToListAsync();
+        return result;
     }
 }

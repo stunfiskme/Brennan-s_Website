@@ -1,13 +1,15 @@
 ﻿@page "/BannedCropsList/{GardenId:int}"
 @using BrennansWebsite.Models
-@inject Services.BannedCropsService BannedCropsService 
+@using BrennansWebsite.Services
+@inject BannedCropsService BannedCropsService 
+@inject GardensService GardensService 
+@inject GardenersService GardenersService 
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer 
 <h3>List of Banned Crops</h3>
 
 <NavLink href="/GardensList">Back to Gardens</NavLink>
-
-<button class="btn btn-secondary" @onclick="backToBanCrop">Ban a Crop</button>
 <br/>
 <div class="w-100">
     <SearchBar Items="BannedCrops" OnSearch="SearchedGardens"></SearchBar>
@@ -19,28 +21,55 @@
                     <th>Crop Name</th>
                 </tr>
             </thead>
-    <tbody>
-    @if (_wantedCrops != null && _wantedCrops.Any())
-    {
-        @foreach (var bannedCrops in _wantedCrops)
-        {
-            <tr>
-            <td>@bannedCrops.CropName</td>
-                <td><a class="btn bg-warning btn-sm"  href="/updateCropsAllowed/@bannedCrops.GardenId/@bannedCrops.bannedID">Update</a></td>
-                <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteCrop(bannedCrops.bannedID)">Delete</button>
-                    </td>
-            </tr>
-        }
-    }
-    else
-    {
-        <tr>
-            <td colspan="1">
-                Crops not Found!
-            </td>
-        </tr>
-    }
-    </tbody>
+            <tbody>
+            @if (_wantedCrops != null && _wantedCrops.Any())
+            {
+                @foreach (var bannedCrops in _wantedCrops)
+                {
+                    <tr>
+                        <td>@bannedCrops.CropName</td>
+                        <AuthorizeView Roles="leader">
+                            <Authorized>
+                                @if (leader)
+                                {
+                                    <button class="btn btn-secondary" @onclick="backToBanCrop">Ban a Crop</button>
+                                    <td><a class="btn bg-warning btn-sm" href="/updateCropsAllowed/@bannedCrops.GardenId/@bannedCrops.bannedID">Update</a></td>
+                                    <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteCrop(bannedCrops.bannedID)">Delete</button>
+                                    </td>
+                                }
+                            </Authorized>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="admin">
+                            <Authorized>
+                                <td>
+                                    <button class="btn btn-secondary" @onclick="backToBanCrop">Ban a Crop</button></td>
+                                <td><a class="btn bg-warning btn-sm" href="/updateCropsAllowed/@bannedCrops.GardenId/@bannedCrops.bannedID">Update</a></td>
+                                <td> <button class="btn btn-danger btn-sm" @onclick="() => DeleteCrop(bannedCrops.bannedID)">Delete</button>
+                                </td>
+                            </Authorized>
+                        </AuthorizeView>                                         
+                    </tr>
+                }
+            }
+            else
+            { 
+                <tr>
+                <AuthorizeView Roles="leader">
+                    <Authorized>
+                        @if (leader)
+                        {
+                            <button class="btn btn-primary" @onclick="backToBanCrop">Ban a Crop</button>
+                        }
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="admin">
+                    <Authorized>
+                        <button class="btn btn-primary" @onclick="backToBanCrop">Ban a Crop</button>
+            </Authorized>
+                </AuthorizeView> 
+                </tr>
+            }
+             </tbody>
 </table>
 
 
@@ -51,12 +80,34 @@
     List<BannedCrops> _wantedCrops = new();
     [Parameter]
     public int GardenId { get; set; }
-    
+    //if this user is leader of this garden
+    private bool leader;
+    private int? leaderId;
+    private int GardenerId;
     protected override async Task OnInitializedAsync()
     {
+        //get leaderId
+        var thisGarden = await GardensService.GetByIdAsync(GardenId);
+        leaderId = thisGarden.LeaderId;
         BannedCrops = await BannedCropsService.GetTheOnesInThisGardenAsync(GardenId);
         _wantedCrops = BannedCrops.ToList();
-
+        //get the gardenerID that could claim a plot from their selected garden
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        int userId;
+        var userIdClaim = user.FindFirst("UserId")?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out userId))
+        {
+            GardenerId = await GardenersService.GetByUserIdAsync(userId);
+            if (leaderId != null && leaderId == GardenerId)
+            {
+                leader = true;
+            }
+            else
+            {
+                leader = false;
+            }
+        }
     }
     private async Task DeleteCrop(int bannedID)
     {

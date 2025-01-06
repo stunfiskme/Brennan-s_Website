@@ -78,11 +78,12 @@ namespace BrennansWebsite.Migrations
 
             modelBuilder.Entity("BrennansWebsite.Models.Gardener", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("GardenerId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnName("id");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GardenerId"));
 
                     b.Property<string>("FirstName")
                         .IsRequired()
@@ -92,7 +93,14 @@ namespace BrennansWebsite.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.Property<int>("userId")
+                        .HasColumnType("int")
+                        .HasColumnName("userId");
+
+                    b.HasKey("GardenerId");
+
+                    b.HasIndex("userId")
+                        .IsUnique();
 
                     b.ToTable("Gardeners");
                 });
@@ -118,14 +126,12 @@ namespace BrennansWebsite.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
-                    b.Property<int?>("Id")
+                    b.Property<int?>("LeaderId")
                         .HasColumnType("int");
 
                     b.HasKey("GardenId");
 
-                    b.HasIndex("Id")
-                        .IsUnique()
-                        .HasFilter("[Id] IS NOT NULL");
+                    b.HasIndex("LeaderId");
 
                     b.ToTable("Gardens");
                 });
@@ -151,6 +157,36 @@ namespace BrennansWebsite.Migrations
                     b.HasIndex("GardenId");
 
                     b.ToTable("Plots");
+                });
+
+            modelBuilder.Entity("BrennansWebsite.Models.UserAccount", b =>
+                {
+                    b.Property<int>("userId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("userId"));
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("password");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("username");
+
+                    b.Property<string>("role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("userId");
+
+                    b.ToTable("userAccount");
                 });
 
             modelBuilder.Entity("BrennansWebsite.Models.BannedCrops", b =>
@@ -194,13 +230,24 @@ namespace BrennansWebsite.Migrations
                     b.Navigation("Plots");
                 });
 
+            modelBuilder.Entity("BrennansWebsite.Models.Gardener", b =>
+                {
+                    b.HasOne("BrennansWebsite.Models.UserAccount", "UserAccount")
+                        .WithOne("Gardener")
+                        .HasForeignKey("BrennansWebsite.Models.Gardener", "userId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserAccount");
+                });
+
             modelBuilder.Entity("BrennansWebsite.Models.Gardens", b =>
                 {
-                    b.HasOne("BrennansWebsite.Models.Gardener", "Gardener")
-                        .WithOne("Garden")
-                        .HasForeignKey("BrennansWebsite.Models.Gardens", "Id");
+                    b.HasOne("BrennansWebsite.Models.Gardener", "Leader")
+                        .WithMany()
+                        .HasForeignKey("LeaderId");
 
-                    b.Navigation("Gardener");
+                    b.Navigation("Leader");
                 });
 
             modelBuilder.Entity("BrennansWebsite.Models.Plots", b =>
@@ -217,8 +264,6 @@ namespace BrennansWebsite.Migrations
             modelBuilder.Entity("BrennansWebsite.Models.Gardener", b =>
                 {
                     b.Navigation("ClaimedBy");
-
-                    b.Navigation("Garden");
                 });
 
             modelBuilder.Entity("BrennansWebsite.Models.Gardens", b =>
@@ -229,6 +274,12 @@ namespace BrennansWebsite.Migrations
             modelBuilder.Entity("BrennansWebsite.Models.Plots", b =>
                 {
                     b.Navigation("ClaimedBy");
+                });
+
+            modelBuilder.Entity("BrennansWebsite.Models.UserAccount", b =>
+                {
+                    b.Navigation("Gardener")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

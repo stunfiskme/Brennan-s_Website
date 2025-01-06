@@ -1,7 +1,9 @@
+using System.Net;
 using BrennansWebsite.Components;
 using BrennansWebsite.Data;
 using BrennansWebsite.Models;
 using BrennansWebsite.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -20,9 +22,21 @@ builder.Services.AddScoped<PlotsServices>();
 builder.Services.AddScoped<BannedCropsService>();  
 builder.Services.AddScoped<ClaimedByService>();  
 builder.Services.AddScoped<CropsGrowingService>();  
-builder.Services.AddScoped<ApplicationDbContext>();  
+builder.Services.AddScoped<ApplicationDbContext>();
+builder.Services.AddScoped<UserAccountService>();
+//cookie stuff
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Login";
+        options.Cookie.Name = "auth_token";
+        options.Cookie.MaxAge = TimeSpan.FromHours(1);
+        options.AccessDeniedPath = "/";//add acess deined page !!!!later
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
 
-
+//
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -37,6 +51,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseAntiforgery();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

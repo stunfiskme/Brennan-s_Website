@@ -3,6 +3,7 @@
 @inject Services.PlotsServices PlotsServices
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer 
+@attribute [Authorize(Roles = "admin, leader") ]
 <h3>Update Plot</h3>
 
 

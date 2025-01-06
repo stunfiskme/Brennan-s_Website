@@ -1,0 +1,89 @@
+﻿@page "/UserAccountList"
+@using BrennansWebsite.Models
+@using BrennansWebsite.Services
+@inject GardenersService GardenersService
+@rendermode InteractiveServer 
+<h3>User Accounts</h3>
+@attribute [Authorize(Roles = "admin") ]
+
+@if (Gardeners == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="w-100">
+        <SearchBar Items="Gardeners" OnSearch="SearchedGardeners"></SearchBar>
+    </div>
+    <table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>UserName</th>
+            <th>Role</th>
+            <th>Claims List</th>
+            <th>Update Gardner info</th>
+            <th>Update Role</th>
+            <th>Assign</th>
+        </tr>
+        </thead>
+        <tbody>
+       @if (wantedGardeners != null && wantedGardeners.Any())
+               {
+            @for (int i = 0; i < wantedGardeners.Count; i++)
+            {
+                <tr>
+                    <td> @wantedGardeners[i].FirstName</td>
+                    <td> @wantedGardeners[i].LastName</td>
+                     <td>@wantedGardeners[i].UserAccount.Username</td>
+                     <td>@wantedGardeners[i].UserAccount.role</td>
+                    <td><a href="/ClaimedByList/@wantedGardeners[i].GardenerId">Claims</a></td>
+                    <td><a href="/UpdateGardeners/@wantedGardeners[i].GardenerId">Update</a></td>
+                    <td><a href="/UpdateUserAccount/@wantedGardeners[i].UserAccount.userId">Role</a></td>
+                    @if (wantedGardeners[i].UserAccount.role == "leader")
+                    {
+                        <td><a href="/AssignLeader/@wantedGardeners[i].GardenerId">Garden</a></td>
+                    }
+                    else
+                    {
+                        <td>N/A</td>
+                    }
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="3">
+                    Users not Found!
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Gardener> Gardeners = new();
+    private List<Gardener> wantedGardeners = new();
+    protected override async Task OnInitializedAsync()
+    {
+        Gardeners = await GardenersService.GetAllInfo();
+        wantedGardeners = Gardeners;
+    }
+    
+    void SearchedGardeners(string searchTerm)
+    {
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            wantedGardeners = Gardeners.ToList();
+        }
+        else
+        {
+            wantedGardeners = Gardeners.Where(gardener=> gardener.FirstName.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase) || 
+                                                         gardener.LastName.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    }
+

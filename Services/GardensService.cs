@@ -1,5 +1,6 @@
 ﻿using BrennansWebsite.Data;
 using BrennansWebsite.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace BrennansWebsite.Services;
 
@@ -29,7 +30,11 @@ public class GardensService
 
         return garden;
     }
-
+    //get leaders and gardens
+    public async Task<List<Gardens>> GeAllLeadersAndGardens()
+    {
+        return await _context.Gardens.Include(g => g.Leader).ToListAsync();
+    }
 // update
     public async Task UpdateGardenAsync(Gardens garden)
     {

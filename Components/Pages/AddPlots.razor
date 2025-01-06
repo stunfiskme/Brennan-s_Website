@@ -3,6 +3,7 @@
 @rendermode InteractiveServer 
 @inject Data.ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "admin, leader") ]
 <h3>Add Plots to a garden</h3>
 
 <EditForm Model="@plots" OnValidSubmit="SubmitForm" FormName="plotsForm" >

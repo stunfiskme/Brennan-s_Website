@@ -3,6 +3,7 @@
 @inject Services.CropsGrowingService CropsGrowingService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer 
+@attribute [Authorize(Roles = "admin, leader , user") ]
 <h3>Update Crop in Plot</h3>
 <button class="btn btn-secondary" @onclick="backToPlotsList">Plot's List</button>
 @if (CropsGrowing == null)

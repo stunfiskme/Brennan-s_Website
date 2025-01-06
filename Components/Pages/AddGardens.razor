@@ -2,6 +2,7 @@
 @using BrennansWebsite.Models
 @rendermode InteractiveServer 
 @inject Data.ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "admin") ]
 <h3>Add Gardens</h3>
 
 <EditForm Model="@Gardens" OnValidSubmit="SubmitForm" FormName="gardensForm" >

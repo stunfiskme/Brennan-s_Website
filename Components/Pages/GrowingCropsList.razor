@@ -1,8 +1,12 @@
 ﻿@page "/GrowingCropsList/{PlotId:int}/{GardenId:int}"
 @using BrennansWebsite.Models
 @inject Services.CropsGrowingService CropsGrowingService 
+@inject Services.GardensService GardensService 
+@inject Services.ClaimedByService ClaimedByService 
+@inject Services.GardenersService GardenersService 
 @rendermode InteractiveServer 
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 <h3>Crops in this plot</h3>
 
 <button class="btn btn-secondary" @onclick="backToPlotsList">Plot's List</button>
@@ -19,9 +23,21 @@
         {
             <tr>
                 <td>@CG.cropName</td>
-                <td><a href="/UpdateGrowingCrops/@CG.PlotsId/@GardenId/@CG.cropName">Update</a></td>
-                <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete (CG.PlotsId, CG.cropName)">Delete</button>
-                    </td>
+                 <AuthorizeView Roles="admin">
+                     <Authorized>
+                         <td><a href="/UpdateGrowingCrops/@CG.PlotsId/@GardenId/@CG.cropName">Update</a></td>
+                         <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete (CG.PlotsId, CG.cropName)">Delete</button></td>
+                     </Authorized>
+                     </AuthorizeView>
+                     <AuthorizeView Roles="leader, user">
+                         <Authorized>
+                             @if (leader || isThisUserTheClaimentOfThisPlot())
+                             {
+                                 <td><a href="/UpdateGrowingCrops/@CG.PlotsId/@GardenId/@CG.cropName">Update</a></td>
+                                 <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(CG.PlotsId, CG.cropName)">Delete</button></td>
+                             }
+                         </Authorized>
+                     </AuthorizeView>
             </tr>
         }
     }
@@ -42,11 +58,40 @@
     [Parameter]
     public int GardenId { get; set; }
     private List<CropsGrowing> CropsGrowing = new();
+    //gardener_info
+    private int GardenerId;
+    //if this user is leader of this garden
+    private bool leader;
+    private int? leaderId;
+    //the claims for this gardener
+    private List<ClaimedBy> claim;
     //
     protected override async Task OnInitializedAsync()
     {
         CropsGrowing = await CropsGrowingService.GetTheOnesInThisPlotAsync(PlotId);
-
+        //get leaderId
+        var thisGarden = await GardensService.GetByIdAsync(GardenId);
+        leaderId = thisGarden.LeaderId;
+        //get the userID and see if they are this gardens leader
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        int userId;
+        var userIdClaim = user.FindFirst("UserId")?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out userId))
+        {
+            //get GardenerId
+            GardenerId = await GardenersService.GetByUserIdAsync(userId);
+            claim = await ClaimedByService.GetTheOnesForThisGardenerAsync(GardenerId);
+            if (leaderId != null && leaderId == GardenerId)
+            {
+                    leader = true;
+            }
+        }
+        else
+        {
+            // Handle invalid or missing UserId claim
+            Console.WriteLine("User ID claim is missing or invalid.");
+        }
     }
 
     private async Task Delete(int plotid, string cropName)
@@ -58,5 +103,19 @@
     private async Task backToPlotsList()
     {
         NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+
+    private bool isThisUserTheClaimentOfThisPlot()
+    {
+        foreach (ClaimedBy c in claim)
+        {
+            if (c.PlotsId == PlotId)
+            {
+                return true;
+            }
+           
+        }
+
+        return false;
     }
 }
