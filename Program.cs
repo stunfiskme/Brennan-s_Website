@@ -1,7 +1,5 @@
-using System.Net;
 using BrennansWebsite.Components;
 using BrennansWebsite.Data;
-using BrennansWebsite.Models;
 using BrennansWebsite.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +27,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(options =>
     {
         options.LoginPath = "/Login";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Cookie.Name = "auth_token";
         options.Cookie.MaxAge = TimeSpan.FromHours(1);
         options.AccessDeniedPath = "/";//add acess deined page !!!!later

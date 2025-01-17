@@ -1,7 +1,18 @@
 ﻿@page "/"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+<PageTitle>Community Gardens</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<h1 class="text">Community Gardens</h1>
 
-<h1>Hello, world!</h1>
+<div class="button">
+    <button class="btn btn-primary btn-lg" @onclick="() => ToGardensList()">Gardens</button>
+</div>
 
-Welcome to your new app.
+@code
+{
+    private async Task ToGardensList()
+    {
+        NavigationManager.NavigateTo("/GardensList");
+    }
+}

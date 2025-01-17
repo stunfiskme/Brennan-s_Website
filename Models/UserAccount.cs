@@ -13,12 +13,12 @@ public class UserAccount
     public int userId { get; set; }
     //username
     [Column("username")]
-    [MaxLength(50)]
+    [MaxLength(20)]
     [Required]
     public string Username { get; set; } = "";
     //pasword
     [Column("password")]
-    [MaxLength(100)]
+    [MaxLength(23)]
     [Required]
     public string Password { get; set; } = "";
     

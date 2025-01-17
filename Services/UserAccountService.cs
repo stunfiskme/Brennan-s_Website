@@ -1,5 +1,6 @@
 ﻿using BrennansWebsite.Data;
 using BrennansWebsite.Models;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace BrennansWebsite.Services;
 
@@ -32,5 +33,20 @@ public class UserAccountService
     {
         _context.UserAccount.Update(UserAccount);
         await _context.SaveChangesAsync();
+    }
+    //Search by UserName
+    public async Task<string?> GetByUsername(string Username)
+    {
+        string query = "SELECT username FROM userAccount WHERE Username = @Username";
+        var parameters = new[]
+        {
+            new SqlParameter("@Username", Username)
+        };
+        var result = await _context.UserAccount
+            .FromSqlRaw(query, parameters)
+            .Select(g => g.Username)  
+            .FirstOrDefaultAsync();
+        
+        return result;
     }
 }

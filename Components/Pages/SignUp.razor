@@ -1,42 +1,81 @@
 ﻿@page "/SignUp"
 @using BrennansWebsite.Models
+@using BrennansWebsite.Services
+@using System.Text.RegularExpressions;
 @inject Data.ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
+@inject UserAccountService UserAccountService
 @rendermode InteractiveServer 
 <h3>Sign Up</h3>
 
-<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" >
+<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" class="">
 <div class="form-group">
             <label for="User Name">User Name</label>
-            <InputText @bind-Value="UserAccount.Username" class="form-control" id="User Name" />
+            <InputText @bind-Value="@UserAccount.Username" class="form-control" id="User Name" />
         </div>
         <br/>
         <div class="form-group">
                     <label for="password">Password</label>
-                    <InputText @bind-Value="UserAccount.Password" class="form-control" id="password" />
+                    <InputText @bind-Value="@UserAccount.Password" class="form-control" id="password" type="password" />
                 </div>
         <br/>
+        <div class="form-group">
+                            <label for="confirm_password">Confirm Password</label>
+                            <InputText @bind-Value="@confirm_password" class="form-control" id="confirm_password" type="password"/>
+                        </div>
+                <br/>
     <div class="form-group">
         <label for="FirstName">First Name</label>
-        <InputText @bind-Value="Gardener.FirstName" class="form-control" id="FirstName" />
+        <InputText @bind-Value="@Gardener.FirstName" class="form-control" id="FirstName" />
     </div>
     <br/>
     <div class="form-group">
         <label for="LastName">Last Name</label>
-        <InputText @bind-Value="Gardener.LastName" class="form-control" id="LastName" />
+        <InputText @bind-Value="@Gardener.LastName" class="form-control" id="LastName" />
     </div>
- <input type="submit" class="btn btn-primary" value="Save"/>
+    <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+    <div class="mb-3 text-center">
+            <span class="text-danger">@errorMessage</span>
+        </div>
         </EditForm>
 @code {
     UserAccount UserAccount = new();
     Gardener Gardener = new();
+    private string? errorMessage;
+    string? confirm_password;
+    string? compare_Username;
+    string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,23}$";
+    bool invalidPassword = true;
+    //invalid password!!!
     private async Task SubmitForm()
     {
-        DbContext.UserAccount.Add(UserAccount);
-        await DbContext.SaveChangesAsync();
-        Gardener.userId = UserAccount.userId;
-        DbContext.Gardeners.Add(Gardener);
-        await DbContext.SaveChangesAsync();
-        NavigationManager.NavigateTo($"/");
+        //If the password is valid, set invalidPassword to false
+        invalidPassword = !Regex.IsMatch(UserAccount.Password, pattern);;
+        compare_Username = await UserAccountService.GetByUsername(UserAccount.Username);
+        if (UserAccount.Password != confirm_password)
+        {
+            errorMessage = "Passwords do NOT match!";
+        }
+        else if(compare_Username != null)
+        {
+            errorMessage = "UserName is already Taken!";
+        }
+        else if (invalidPassword)
+        {
+            errorMessage = "Passwords requires a Number, 8-23 Characters, " +
+                           "Uppercase/LowerCase letters, and a special " +
+                           "character";
+        }
+        else
+        {
+            DbContext.UserAccount.Add(UserAccount);
+            await DbContext.SaveChangesAsync();
+            Gardener.userId = UserAccount.userId;
+            DbContext.Gardeners.Add(Gardener);
+            await DbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo($"/");
+        }
     }
+
 }

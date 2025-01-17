@@ -9,8 +9,10 @@ public class Gardener
     [Column("id")]
     public int GardenerId { get; set; }
     [Required]
+    [MaxLength(20)]
     public string FirstName { get; set; }
     [Required]
+    [MaxLength(20)]
     public string LastName { get; set; }
     //fk to users
     [Column("userId")]

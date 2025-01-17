@@ -9,9 +9,10 @@ public class Gardens
     public int GardenId { get; set; }
     [MaxLength(40)]
     public string GardenName { get; set; }
+    [MaxLength(20)]
     
     public string City { get; set; }
-    
+    [MaxLength(30)]
     public string Address { get; set; }
     
     //fk to gardens
