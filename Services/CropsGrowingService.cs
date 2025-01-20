@@ -22,8 +22,8 @@ public class CropsGrowingService
     
     public async Task<List<CropsGrowing>> GetTheOnesInThisPlotAsync(int PlotsId)
     {
-        var CropsGrowing = await _context.CropsGrowing.ToListAsync();
-        CropsGrowing = CropsGrowing.Where(CropsGrowing => CropsGrowing.PlotsId == PlotsId).ToList();
+        var CropsGrowing = await _context.CropsGrowing.
+            Where(CropsGrowing => CropsGrowing.PlotsId == PlotsId).ToListAsync();
         return CropsGrowing;
     }
     // get one by id

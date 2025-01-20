@@ -3,6 +3,7 @@
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation
 @inject NavigationManager NavigationManager
 @inject Data.ApplicationDbContext DbContext
 @rendermode InteractiveServer 
@@ -39,9 +40,25 @@
     public LoginViewModel Model { get; set; } = new();
     
     private string? errorMessage;
+    //move to serer side logic!!!!!
     private async Task Authenticate()
     {
+        //add pepper
+        string pepper = "f!kx?a59uQJwyO=g";//Make into SECERT!
+         Model.Password  = string.Concat( Model.Password , pepper);
+        //get userInfo
         var UserAccount = DbContext.UserAccount.Where(ua => ua.Username == Model.UserName).FirstOrDefault();
+        var salt = UserAccount.salt;
+        //hash enter password 
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: Model.Password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 600000,
+            numBytesRequested: 256 / 8));
+        //Password is hashed
+        Model.Password = hashed;
+        //compare for match
         if (UserAccount is null || UserAccount.Password != Model.Password)
         {
             errorMessage = "Invalid User Name or Password!";

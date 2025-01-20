@@ -1,5 +1,6 @@
 ﻿using BrennansWebsite.Data;
 using BrennansWebsite.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace BrennansWebsite.Services;
 
@@ -21,8 +22,8 @@ public class PlotsServices
     
     public async Task<List<Plots>> GetTheOnesInThisGardenAsync(int gardenId )
     {
-        var plots = await _context.Plots.ToListAsync();
-        plots = plots.Where(Plots => Plots.GardenId == gardenId).ToList();
+        var plots = await _context.Plots.
+            Where(Plots => Plots.GardenId == gardenId).ToListAsync();
         return plots;
     }
 

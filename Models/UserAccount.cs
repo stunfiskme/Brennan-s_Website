@@ -16,9 +16,14 @@ public class UserAccount
     [MaxLength(20)]
     [Required]
     public string Username { get; set; } = "";
-    //pasword
+    //salt 
+    [Column("salt")]
+    [MaxLength(16)] // Salt is 16 bytes long
+    [Required]
+    public byte[] salt { get; set; }
+    //password
     [Column("password")]
-    [MaxLength(23)]
+    [MaxLength(44)]
     [Required]
     public string Password { get; set; } = "";
     

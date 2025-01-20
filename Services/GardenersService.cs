@@ -54,7 +54,7 @@ public class GardenersService
     //get all in this garden
     public async Task<List<Gardener>> getAllGardenersWhoHaveACliamInThisGarden(int gardenId)
     {
-        string query = "SELECT Gardeners.Id ,FirstName,LastName,userId FROM((SELECT * FROM ClaimedBys JOIN Plots ON Plots.PlotId = ClaimedBys.PlotsId WHERE Plots.GardenId = @gardenId) As ClaimsInGarden\nJOIN Gardeners ON ClaimsInGarden.id = Gardeners.Id)";
+        string query = "SELECT Gardeners.Id ,FirstName,LastName,userId FROM((SELECT * FROM ClaimedBys JOIN Plots ON Plots.PlotId = ClaimedBys.PlotsId WHERE Plots.GardenId = @gardenId) As ClaimsInGarden JOIN Gardeners ON ClaimsInGarden.id = Gardeners.Id)";
         var parameters = new[]
         {
             new SqlParameter("@gardenId", gardenId)

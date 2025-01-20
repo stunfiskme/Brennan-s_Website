@@ -174,8 +174,8 @@ namespace BrennansWebsite.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(23)
-                        .HasColumnType("nvarchar(23)")
+                        .HasMaxLength(44)
+                        .HasColumnType("nvarchar(44)")
                         .HasColumnName("password");
 
                     b.Property<string>("Username")
@@ -187,6 +187,12 @@ namespace BrennansWebsite.Migrations
                     b.Property<string>("role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("salt")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varbinary(16)")
+                        .HasColumnName("salt");
 
                     b.HasKey("userId");
 

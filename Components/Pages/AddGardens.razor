@@ -27,7 +27,6 @@
 <NavLink href="/GardensList">Back to Gardens</NavLink>
 @code {
     Gardens Gardens = new();
-
     private async Task SubmitForm()
     {
         DbContext.Gardens.Add(Gardens);

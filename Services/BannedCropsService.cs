@@ -22,8 +22,8 @@ public class BannedCropsService
     
     public async Task<List<BannedCrops>> GetTheOnesInThisGardenAsync(int bannedID)
     {
-        var BannedCrops = await _context.BannedCrops.ToListAsync();
-        BannedCrops = BannedCrops.Where(BannedCrops => BannedCrops.GardenId == bannedID).ToList();
+        var BannedCrops = await _context.BannedCrops.Where
+            (BannedCrops => BannedCrops.GardenId == bannedID).ToListAsync();
         return BannedCrops;
     }
     // get one by id

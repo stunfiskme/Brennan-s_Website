@@ -2,13 +2,15 @@
 @using BrennansWebsite.Models
 @using BrennansWebsite.Services
 @using System.Text.RegularExpressions;
+@using System.Security.Cryptography
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation
 @inject Data.ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
 @inject UserAccountService UserAccountService
 @rendermode InteractiveServer 
 <h3>Sign Up</h3>
 
-<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" class="">
+<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" >
 <div class="form-group">
             <label for="User Name">User Name</label>
             <InputText @bind-Value="@UserAccount.Username" class="form-control" id="User Name" />
@@ -47,11 +49,11 @@
     string? compare_Username;
     string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,23}$";
     bool invalidPassword = true;
-    //invalid password!!!
+    
     private async Task SubmitForm()
     {
         //If the password is valid, set invalidPassword to false
-        invalidPassword = !Regex.IsMatch(UserAccount.Password, pattern);;
+        invalidPassword = !Regex.IsMatch(UserAccount.Password, pattern);
         compare_Username = await UserAccountService.GetByUsername(UserAccount.Username);
         if (UserAccount.Password != confirm_password)
         {
@@ -69,6 +71,24 @@
         }
         else
         {
+            //pepper! HIDE ME PLZ!
+            string pepper = "f!kx?a59uQJwyO=g";//Make into SECERT!
+            //ADD PEPPER
+            UserAccount.Password = string.Concat( UserAccount.Password , pepper);
+            //make a new salt
+            byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+            //STORE IT IN DB!!!!!!!
+            UserAccount.salt = salt;
+            //hashing
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: UserAccount.Password,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 600000,
+                numBytesRequested: 256 / 8));
+            //Password set to DB is hashed
+            UserAccount.Password = hashed;
+            //
             DbContext.UserAccount.Add(UserAccount);
             await DbContext.SaveChangesAsync();
             Gardener.userId = UserAccount.userId;

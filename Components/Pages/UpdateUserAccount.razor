@@ -31,7 +31,6 @@
     {
         UserAccount = await UserAccountService.GetByIdAsync(userId);
     }
-    
     private async Task Submit()
     {
         await UserAccountService.UpdateAsync(UserAccount);

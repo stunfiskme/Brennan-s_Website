@@ -1,6 +1,5 @@
 ﻿using BrennansWebsite.Data;
 using BrennansWebsite.Models;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 namespace BrennansWebsite.Services;
 

@@ -21,14 +21,15 @@ public class ClaimedByService
 // get all the claim for a gardener
     public async Task<List<ClaimedBy>> GetTheOnesForThisGardenerAsync(int Id)
     {
-        var ClaimedBy = await _context.ClaimedBys.ToListAsync();
-        ClaimedBy = ClaimedBy.Where(ClaimedBy => ClaimedBy.Id == Id).ToList();
+        var ClaimedBy = await _context.ClaimedBys.
+            Where(ClaimedBy => ClaimedBy.Id == Id).ToListAsync();
         return ClaimedBy;
     }
     //get the claims for this gardeners along with the plot and gardener name/s 
     public async Task<List<ClaimedBy>> GetAllInfo(int gardenerId)
     {
-        return await _context.ClaimedBys.Where(ClaimedBy => ClaimedBy.Id == gardenerId).Include(b => b.Plots).ToListAsync();
+        return await _context.ClaimedBys.Where(ClaimedBy => ClaimedBy.Id == gardenerId).
+            Include(b => b.Plots).ToListAsync();
     }
     // get one by id
     public async Task<ClaimedBy> GetByIdAsync(int PlotsId, int Id)
