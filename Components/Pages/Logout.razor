@@ -10,7 +10,7 @@
     protected override async Task OnInitializedAsync()
     {
         await HttpContext.SignOutAsync();
-        NavigationManager.NavigateTo("/");
+        NavigationManager.NavigateTo("/" , true);
     }
 
 }

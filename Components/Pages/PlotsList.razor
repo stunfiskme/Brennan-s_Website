@@ -12,6 +12,19 @@
 
 <NavLink href="/GardensList">Back to Gardens</NavLink>
 <br/>
+<AuthorizeView Roles="admin">
+    <Authorized>
+        <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+    </Authorized>
+</AuthorizeView>
+ <AuthorizeView Roles="leader">
+                    <Authorized>
+                        @if (leader)
+                        {
+                            <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+                        }
+                    </Authorized>
+                    </AuthorizeView>
 <table class="table table-striped align-middle table-bordered">
         <thead class="table-success">
                 <tr>
@@ -52,15 +65,9 @@
                         </AuthorizeView>
                     }
                 </td>
-                @*if owner true button work*@
-                @if (owner)
-                {
-                    <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td>
-                }
                 <AuthorizeView Roles="admin">
                     <Authorized>
                         <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td>
-                        <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
                         <td><a href="/UpdatePlots/@Plot.PlotId">Update</a></td>
                         <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(Plot.PlotId)">Delete</button>
                         </td>
@@ -70,14 +77,17 @@
                     <Authorized>
                         @if (leader)
                         {
-                            <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
                             <td><a href="/UpdatePlots/@Plot.PlotId">Update</a></td>
                             <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(Plot.PlotId)">Delete</button>
                             </td>
                         }
                     </Authorized>
                     </AuthorizeView>
-                                                                 
+                @*if owner true button work*@
+                @if (owner) 
+                {
+                    <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td> 
+                }                                            
             </tr>
         }
     }

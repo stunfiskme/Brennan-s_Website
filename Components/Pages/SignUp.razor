@@ -7,6 +7,7 @@
 @inject Data.ApplicationDbContext DbContext
 @inject NavigationManager NavigationManager
 @inject UserAccountService UserAccountService
+@inject IConfiguration _Configuration
 @rendermode InteractiveServer 
 <h3>Sign Up</h3>
 
@@ -47,9 +48,16 @@
     private string? errorMessage;
     string? confirm_password;
     string? compare_Username;
-    string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,23}$";
+    string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,23}$";
     bool invalidPassword = true;
     
+    //Set Pepper for password Hashing
+    string pepper = "";
+    protected override void OnInitialized()
+    {
+        pepper = _Configuration.GetValue<string>("pepper");
+    }
+
     private async Task SubmitForm()
     {
         //If the password is valid, set invalidPassword to false
@@ -65,14 +73,12 @@
         }
         else if (invalidPassword)
         {
-            errorMessage = "Passwords requires a Number, 8-23 Characters, " +
+            errorMessage = "Passwords requires a Number, 12-23 Characters, " +
                            "Uppercase/LowerCase letters, and a special " +
                            "character";
         }
         else
         {
-            //pepper! HIDE ME PLZ!
-            string pepper = "f!kx?a59uQJwyO=g";//Make into SECERT!
             //ADD PEPPER
             UserAccount.Password = string.Concat( UserAccount.Password , pepper);
             //make a new salt

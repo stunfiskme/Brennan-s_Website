@@ -5,8 +5,8 @@
 @using Microsoft.AspNetCore.Authentication.Cookies
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation
 @inject NavigationManager NavigationManager
+@inject IConfiguration _Configuration
 @inject Data.ApplicationDbContext DbContext
-@rendermode InteractiveServer 
 
 <div style="display: flex; justify-content: center; align-items: center; height: 50vh;">
     <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="LoginForm">
@@ -38,13 +38,18 @@
     public HttpContext? HttpContext { get; set; }
     [SupplyParameterFromForm] 
     public LoginViewModel Model { get; set; } = new();
-    
     private string? errorMessage;
-    //move to serer side logic!!!!!
+    
+    //Set Pepper for password Hashing
+    string pepper = "";
+    protected override void OnInitialized()
+    {
+        pepper = _Configuration.GetValue<string>("pepper");
+    }
+
     private async Task Authenticate()
     {
         //add pepper
-        string pepper = "f!kx?a59uQJwyO=g";//Make into SECERT!
          Model.Password  = string.Concat( Model.Password , pepper);
         //get userInfo
         var UserAccount = DbContext.UserAccount.Where(ua => ua.Username == Model.UserName).FirstOrDefault();
