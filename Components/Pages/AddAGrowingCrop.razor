@@ -1,0 +1,45 @@
+﻿@page "/AddAGrowingCrop/{PlotId:int}/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject NavigationManager NavigationManager
+@inject Data.ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "admin, leader , user") ]
+<h3>Add a Crop to this plot</h3>
+<button class="btn btn-secondary" @onclick="backToPlotsList">Plot's List</button>
+<EditForm Model="@CropsGrowing" OnValidSubmit="SubmitForm" FormName="growCropsForm" >
+    <div class="form-group">
+        <label for="cropName">Crop Name</label>
+        <InputText @bind-Value="CropsGrowing.cropName" class="form-control" id="cropName" />
+    </div>
+    <br/>
+     <div class="form-group">
+            <label for="sharing">Are you sharing this Crop?</label>
+            <InputCheckbox @bind-Value="CropsGrowing.PublicStatus" id="sharing" />
+        </div>
+        <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int PlotId { get; set; }
+    [Parameter]
+    public int GardenId { get; set; }
+    CropsGrowing CropsGrowing = new();
+    // Set the PlotId 
+    protected override void OnParametersSet()
+    {
+        CropsGrowing.PlotsId = PlotId; 
+    }
+    //add a crop to a plot
+    private async Task SubmitForm()
+    {
+        DbContext.CropsGrowing.Add(CropsGrowing);
+        await DbContext.SaveChangesAsync();
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+    private async Task backToPlotsList()
+    {
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+}

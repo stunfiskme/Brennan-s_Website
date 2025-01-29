@@ -1,0 +1,107 @@
+﻿@page "/SignUp"
+@using BrennansWebsite.Models
+@using BrennansWebsite.Services
+@using System.Text.RegularExpressions;
+@using System.Security.Cryptography
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation
+@inject Data.ApplicationDbContext DbContext
+@inject NavigationManager NavigationManager
+@inject UserAccountService UserAccountService
+@inject IConfiguration _Configuration
+@rendermode InteractiveServer 
+<h3>Sign Up</h3>
+
+<EditForm Model="@UserAccount" OnValidSubmit="SubmitForm" FormName="signUpForm" >
+<div class="form-group">
+            <label for="User Name">User Name</label>
+            <InputText @bind-Value="@UserAccount.Username" class="form-control" id="User Name" />
+        </div>
+        <br/>
+        <div class="form-group">
+                    <label for="password">Password</label>
+                    <InputText @bind-Value="@UserAccount.Password" class="form-control" id="password" type="password" />
+                </div>
+        <br/>
+        <div class="form-group">
+                            <label for="confirm_password">Confirm Password</label>
+                            <InputText @bind-Value="@confirm_password" class="form-control" id="confirm_password" type="password"/>
+                        </div>
+                <br/>
+    <div class="form-group">
+        <label for="FirstName">First Name</label>
+        <InputText @bind-Value="@Gardener.FirstName" class="form-control" id="FirstName" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="LastName">Last Name</label>
+        <InputText @bind-Value="@Gardener.LastName" class="form-control" id="LastName" />
+    </div>
+    <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+    <div class="mb-3 text-center">
+            <span class="text-danger">@errorMessage</span>
+        </div>
+        </EditForm>
+@code {
+    UserAccount UserAccount = new();
+    Gardener Gardener = new();
+    private string? errorMessage;
+    string? confirm_password;
+    string? compare_Username;
+    string pattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{12,23}$";
+    bool invalidPassword = true;
+    
+    //Set Pepper for password Hashing
+    string pepper = "";
+    protected override void OnInitialized()
+    {
+        pepper = _Configuration.GetValue<string>("pepper");
+    }
+
+    private async Task SubmitForm()
+    {
+        //If the password is valid, set invalidPassword to false
+        invalidPassword = !Regex.IsMatch(UserAccount.Password, pattern);
+        compare_Username = await UserAccountService.GetByUsername(UserAccount.Username);
+        if (UserAccount.Password != confirm_password)
+        {
+            errorMessage = "Passwords do NOT match!";
+        }
+        else if(compare_Username != null)
+        {
+            errorMessage = "UserName is already Taken!";
+        }
+        else if (invalidPassword)
+        {
+            errorMessage = "Passwords requires a Number, 12-23 Characters, " +
+                           "Uppercase/LowerCase letters, and a special " +
+                           "character";
+        }
+        else
+        {
+            //ADD PEPPER
+            UserAccount.Password = string.Concat( UserAccount.Password , pepper);
+            //make a new salt
+            byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+            //STORE IT IN DB!!!!!!!
+            UserAccount.salt = salt;
+            //hashing
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: UserAccount.Password,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 600000,
+                numBytesRequested: 256 / 8));
+            //Password set to DB is hashed
+            UserAccount.Password = hashed;
+            //
+            DbContext.UserAccount.Add(UserAccount);
+            await DbContext.SaveChangesAsync();
+            Gardener.userId = UserAccount.userId;
+            DbContext.Gardeners.Add(Gardener);
+            await DbContext.SaveChangesAsync();
+            NavigationManager.NavigateTo($"/");
+        }
+    }
+
+}

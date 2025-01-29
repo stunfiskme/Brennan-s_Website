@@ -1,0 +1,49 @@
+﻿@page "/UpdateGrowingCrops/{PlotId:int}/{GardenId:int}/{CropName}"
+@using BrennansWebsite.Models
+@inject Services.CropsGrowingService CropsGrowingService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer 
+@attribute [Authorize(Roles = "admin, leader , user") ]
+<h3>Update Crop in Plot</h3>
+<button class="btn btn-secondary" @onclick="backToPlotsList">Plot's List</button>
+@if (CropsGrowing == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="form-group">
+        <label for="Crop Name">Crop Name</label>
+        <InputText @bind-Value="CropsGrowing.cropName" class="form-control" id="Crop Name" />
+    </div>
+    <br/>
+    <button class="btn btn-secondary" @onclick="Submit">Save</button>
+}
+
+@code {
+    [Parameter]
+    public int PlotId { get; set; }
+    [Parameter]
+    public string CropName { get; set; }
+    [Parameter]
+    public int GardenId { get; set; }
+    CropsGrowing CropsGrowing = new();
+    //
+    string oldName; 
+    
+    protected override async Task OnInitializedAsync()
+    {
+        CropsGrowing = await CropsGrowingService.GetByIdAsync(PlotId ,CropName);
+        oldName = CropsGrowing.cropName;
+    }
+    
+    private async Task Submit()
+    {
+        await CropsGrowingService.UpdateAsync(CropsGrowing.PlotsId, CropsGrowing.cropName, oldName);
+    }
+    
+    private async Task backToPlotsList()
+    {
+        NavigationManager.NavigateTo($"/PlotsList/{GardenId}");
+    }
+}

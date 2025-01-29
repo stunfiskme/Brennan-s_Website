@@ -1,0 +1,36 @@
+﻿@page "/AddGardens"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Data.ApplicationDbContext DbContext
+@attribute [Authorize(Roles = "admin") ]
+<h3>Add Gardens</h3>
+
+<EditForm Model="@Gardens" OnValidSubmit="SubmitForm" FormName="gardensForm" >
+    <div class="form-group">
+        <label for="GardenName">Garden Name</label>
+        <InputText @bind-Value="Gardens.GardenName" class="form-control" id="GardenName" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="City">City</label>
+        <InputText @bind-Value="Gardens.City" class="form-control" id="City" />
+    </div>
+    <br/>
+    <div class="form-group">
+        <label for="Address">Address</label>
+        <InputText @bind-Value="Gardens.Address" class="form-control" id="Address" />
+    </div>
+    <br/>
+    <input type="submit" class="btn btn-primary" value="Save"/>
+</EditForm>
+
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+@code {
+    Gardens Gardens = new();
+    private async Task SubmitForm()
+    {
+        DbContext.Gardens.Add(Gardens);
+        await DbContext.SaveChangesAsync();
+        
+    }
+}

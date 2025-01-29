@@ -1,0 +1,16 @@
+﻿@page "/Logout"
+@using Microsoft.AspNetCore.Authentication
+@inject NavigationManager NavigationManager
+<h3>You have been Logged Out!</h3>
+
+
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await HttpContext.SignOutAsync();
+        NavigationManager.NavigateTo("/" , true);
+    }
+
+}

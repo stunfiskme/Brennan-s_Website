@@ -1,0 +1,44 @@
+﻿@page "/UpdateUserAccount/{userId:int}"
+ @using BrennansWebsite.Models
+ @inject Services.UserAccountService UserAccountService
+ @inject NavigationManager NavigationManager
+ @rendermode InteractiveServer 
+ @attribute [Authorize(Roles = "admin")]
+<h3>Update User Account</h3>
+ 
+ @if (UserAccount == null)
+ {
+     <p><em>Loading...</em></p>
+ }
+ else
+ {
+     <div class="form-group">
+         <label for="Role">Role</label>
+         <InputText @bind-Value="UserAccount.role" class="form-control" id="Role" />
+         </div>
+         <br/>
+         <button class="btn btn-secondary" @onclick="Submit">Save</button>
+ }
+ <br/>
+     <button class="btn btn-secondary" @onclick="backToUserAccountList">Back to Users List</button>
+ 
+ @code{
+     [Parameter]
+    public int userId { get; set; }
+    private UserAccount UserAccount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserAccount = await UserAccountService.GetByIdAsync(userId);
+    }
+    private async Task Submit()
+    {
+        await UserAccountService.UpdateAsync(UserAccount);
+        
+    }
+    
+    private async Task backToUserAccountList()
+    {
+        NavigationManager.NavigateTo("/UserAccountList");
+    }
+}
