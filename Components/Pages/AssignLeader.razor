@@ -1,0 +1,101 @@
+﻿@page "/AssignLeader/{GardenerId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.GardensService GardensService 
+@inject Services.GardenersService GardenersService 
+@attribute [Authorize(Roles = "admin") ]
+<h3>AssignLeader</h3>
+
+
+@if (GardensList == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{ 
+    <div class="w-100">
+        <SearchBar Items="GardensList" OnSearch="SearchedGardens"></SearchBar>
+    </div>
+    <table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+        <tr>
+            <th>Garden Name</th>
+            <th>City</th>
+            <th>Address</th>
+            <th>Leader</th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (wantedGardens != null && wantedGardens.Any())
+    {
+        @foreach (var Garden in wantedGardens)
+        {
+            <tr>
+                <td>@Garden.GardenName</td>
+                <td>@Garden.City</td>
+                <td>@Garden.Address</td>
+                @*The garden does not have a leader*@
+                @if (Garden.LeaderId == null)
+                {
+                    <td><button class="btn-primary" @onclick="() => assign(Garden)">Assign</button></td>
+                }
+                @*The garden does have a leader and you want to unassign/assign him gardens*@
+                @*The gardener the admin click the assign button on*@
+                else if (Garden.LeaderId == GardenerId)
+                {
+                    <td><button class="btn-primary" @onclick="() => unassign(Garden)">Un-assign</button></td>
+                }
+                @*The garden does have a leader and its not the one 
+                    that the admin is assign/unassigning gardens to!*@
+                else
+                {
+                    <td>@Garden.Leader.FirstName @Garden.Leader.LastName</td>
+                }
+            </tr>
+        }
+    }
+    </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public int GardenerId { get; set; }
+    //
+    private int LeaderId;
+    private List<Gardens> GardensList;
+    List<Gardens> wantedGardens;
+    private Gardener _gardener;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        GardensList = await GardensService.GeAllLeadersAndGardens();
+        _gardener = await GardenersService.GetByIdAsync(GardenerId);
+        LeaderId = _gardener.GardenerId;
+        wantedGardens = GardensList.ToList();
+    }
+    
+    private void assign(Gardens garden)
+    {
+        garden.LeaderId = LeaderId;
+        GardensService.UpdateGardenAsync(garden);
+    }
+
+    private void unassign(Gardens garden)
+    {
+        garden.LeaderId = null;
+        GardensService.UpdateGardenAsync(garden);
+    }
+    void SearchedGardens(string searchTerm)
+    {
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            wantedGardens = GardensList.ToList();
+        }
+        else
+        {
+            wantedGardens = GardensList.Where(Garden=> Garden.GardenName.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase) || 
+                                                       Garden.City.Contains(searchTerm.TrimStart(), StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    }

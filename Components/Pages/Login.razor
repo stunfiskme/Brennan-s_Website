@@ -1,0 +1,87 @@
+﻿@page "/Login"
+@using BrennansWebsite.Components.Pages.ViewModels
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation
+@inject NavigationManager NavigationManager
+@inject IConfiguration _Configuration
+@inject Data.ApplicationDbContext DbContext
+
+<div style="display: flex; justify-content: center; align-items: center; height: 50vh;">
+    <EditForm Model="@Model" OnValidSubmit="Authenticate" FormName="LoginForm">
+        <h3>Login</h3>
+        <label>User Name</label>
+        <div>
+            <InputText @bind-Value="@Model.UserName" placeholder="User Name"></InputText>
+            <ValidationMessage For="() => Model.UserName"></ValidationMessage>
+        </div>
+        <label>Password</label>
+        <div>
+            <InputText @bind-Value="@Model.Password" placeholder="Password" id="password" type="password"></InputText>
+            <ValidationMessage For="() => Model.Password"></ValidationMessage>
+        </div>
+
+        <div class="mb-3 text-center">
+            <span class="text-danger">@errorMessage</span>
+        </div>
+
+        <button type="submit" class=" btn btn-primary">Login</button>
+        <br/>
+
+        <NavLink href="/SignUp">Sign up</NavLink>
+         </EditForm>
+
+</div>
+@code {
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+    [SupplyParameterFromForm] 
+    public LoginViewModel Model { get; set; } = new();
+    private string? errorMessage;
+    
+    //Set Pepper for password Hashing
+    string pepper = "";
+    protected override void OnInitialized()
+    {
+        pepper = _Configuration.GetValue<string>("pepper");
+    }
+
+    private async Task Authenticate()
+    {
+        //add pepper
+         Model.Password  = string.Concat( Model.Password , pepper);
+        //get userInfo
+        var UserAccount = DbContext.UserAccount.Where(ua => ua.Username == Model.UserName).FirstOrDefault();
+        var salt = UserAccount.salt;
+        //hash enter password 
+        string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+            password: Model.Password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256,
+            iterationCount: 600000,
+            numBytesRequested: 256 / 8));
+        //Password is hashed
+        Model.Password = hashed;
+        //compare for match
+        if (UserAccount is null || UserAccount.Password != Model.Password)
+        {
+            errorMessage = "Invalid User Name or Password!";
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, Model.UserName),
+            new Claim(ClaimTypes.Role, UserAccount.role),
+            new Claim("UserId", UserAccount.userId.ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principle = new ClaimsPrincipal(identity);
+        await HttpContext.SignInAsync(principle);
+        NavigationManager.NavigateTo("/");
+    }
+   
+    
+}

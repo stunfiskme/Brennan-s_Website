@@ -1,0 +1,230 @@
+﻿@page "/PlotsList/{GardenId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.PlotsServices PlotsServices 
+@inject Services.ClaimedByService ClaimedByService 
+@inject Services.GardenersService GardenersService 
+@inject Services.GardensService GardensService 
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+@inject Data.ApplicationDbContext DbContext
+<h3>Plots List</h3>
+
+<NavLink href="/GardensList">Back to Gardens</NavLink>
+<br/>
+<AuthorizeView Roles="admin">
+    <Authorized>
+        <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+    </Authorized>
+</AuthorizeView>
+ <AuthorizeView Roles="leader">
+                    <Authorized>
+                        @if (leader)
+                        {
+                            <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+                        }
+                    </Authorized>
+                    </AuthorizeView>
+<table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>Name of Plot</th>
+                    <th>Claim Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+    <tbody>
+    @if (Plots != null && Plots.Any())
+    {
+        @foreach (var Plot in Plots)
+        {
+            <tr>
+                <td><a href="GrowingCropsList/@Plot.PlotId/@Plot.GardenId">@Plot.PlotName</a></td>
+                <td>
+                    @if (testMethod(Plot.PlotId))
+                    {
+                        <td>Claimed by @_GardenerName</td>
+                        @if (owner)
+                        {
+                            <AuthorizeView Roles="admin, leader, user">
+                                <Authorized>
+                                    <td> <button class="btn btn-danger btn-sm" @onclick="() => UnClaim(Plot.PlotId)">Unclaim plot</button>
+                                    </td>
+                                </Authorized>
+                            </AuthorizeView>
+                        }
+                    }
+                    else
+                    {
+                        <td>@_GardenerName</td>
+                        <AuthorizeView Roles="admin, leader, user">
+                            <Authorized>
+                                <td> <button class="btn btn-danger btn-sm" @onclick="() => Claim(Plot.PlotId)">Claim plot</button>
+                                </td>
+                            </Authorized>
+                        </AuthorizeView>
+                    }
+                </td>
+                <AuthorizeView Roles="admin">
+                    <Authorized>
+                        <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td>
+                        <td><a href="/UpdatePlots/@Plot.PlotId">Update</a></td>
+                        <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(Plot.PlotId)">Delete</button>
+                        </td>
+                    </Authorized>
+                </AuthorizeView>
+                <AuthorizeView Roles="leader">
+                    <Authorized>
+                        @if (leader)
+                        {
+                            <td><a href="/UpdatePlots/@Plot.PlotId">Update</a></td>
+                            <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(Plot.PlotId)">Delete</button>
+                            </td>
+                        }
+                    </Authorized>
+                    </AuthorizeView>
+                @*if owner true button work*@
+                @if (owner) 
+                {
+                    <td><a class="btn btn-danger btn-sm" href="/AddAGrowingCrop/@Plot.PlotId/@Plot.GardenId">Add crop</a></td> 
+                }                                            
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="2">
+                No plots here!
+                <AuthorizeView Roles="admin">
+                    <Authorized>
+                        <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+                    </Authorized>
+                </AuthorizeView>
+                 <AuthorizeView Roles="leader">
+                     <Authorized>
+                         @if (leader)
+                         {
+                             <button class="btn btn-primary" @onclick="backToAddPlot">Add a Plot</button>
+                         }
+                     </Authorized>
+                                    </AuthorizeView>
+            </td>
+            <td></td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+@code {
+    [Parameter]
+    public int GardenId { get; set; }
+    private List<Plots> Plots = new();
+    //list of claims already made
+    private List<ClaimedBy>? claims = new(); 
+    //new claim 
+    private ClaimedBy ClaimedBy = new();
+    //gardener_info
+    private int GardenerId;
+    private string _GardenerName;
+    private List<Gardener> gardeners;
+    //owner of claim
+    private bool owner = false;
+    private int? leaderId;
+    //if this user is leader of this garden
+    private bool leader;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        //get leaderId
+        var thisGarden = await GardensService.GetByIdAsync(GardenId);
+        leaderId = thisGarden.LeaderId;
+        //get all the plots for this garden
+        Plots = await PlotsServices.GetTheOnesInThisGardenAsync(GardenId);
+        //get all claims for the garden
+        claims = await ClaimedByService.GetTheOnesForThisGardenAsync(GardenId);
+        //get all gardeners that claimed a plot in this garden
+        gardeners = await GardenersService.getAllGardenersWhoHaveACliamInThisGarden(GardenId);
+        //get the gardenerID that could claim a plot from their selected garden
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        int userId;
+        var userIdClaim = user.FindFirst("UserId")?.Value;
+        if (!string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out userId))
+        {
+            //get GardenerId
+            GardenerId = await GardenersService.GetByUserIdAsync(userId);
+            if (leaderId != null && leaderId == GardenerId)
+            {
+                leader = true;
+            }
+        }
+        else
+        {
+            // Handle invalid or missing UserId claim
+            Console.WriteLine("User ID claim is missing or invalid.");
+        }
+        //what do i need to do?
+        //handle edge cases, not logged in casading dlete
+    }
+
+    private async Task Delete(int plotid)
+    {
+        await PlotsServices.DeleteAsync(plotid);
+        Plots = await PlotsServices.GetTheOnesInThisGardenAsync(GardenId);
+    }
+    
+    private async Task backToAddPlot()
+    {
+        NavigationManager.NavigateTo($"/AddPlots/{GardenId}");
+    }
+    
+    //claiming plots   
+    private async Task Claim(int plotid)
+    {
+        //use userid to get his gardenerId if unclaimed already 
+        ClaimedBy.PlotsId = plotid;
+        ClaimedBy.Id = GardenerId;
+        //Console.WriteLine(GardenerId + " gid");
+        DbContext.ClaimedBys.Add(ClaimedBy);
+        await DbContext.SaveChangesAsync();
+    }
+    //unclaiming plot
+    private async Task UnClaim(int plotid)
+    {
+        await ClaimedByService.DeleteAsync(plotid, GardenerId);
+        claims = await ClaimedByService.GetTheOnesForThisGardenAsync(GardenId);
+    }
+    
+// update page when claims have changed 
+    private bool testMethod(int plotId)
+    {
+        foreach (ClaimedBy claim in (claims))
+        {
+                if (claim.Id == GardenerId)
+                {
+                    owner = true;
+                }
+                else
+                {
+                    owner = false;
+                }
+            if (claim.PlotsId == plotId)
+            {
+                foreach (Gardener g in gardeners)
+                {
+                    if (g.GardenerId == claim.Id)
+                    {
+                        _GardenerName = g.FirstName + " " + g.LastName;
+                    }
+                }
+                return true;
+            }
+        }
+        owner = false;
+        _GardenerName = "This plot is free to claim";
+        return false;
+    }
+    
+}

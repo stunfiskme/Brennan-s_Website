@@ -1,0 +1,54 @@
+﻿@page "/ClaimedByList/{GardenerId:int}"
+@using BrennansWebsite.Models
+@rendermode InteractiveServer 
+@inject Services.ClaimedByService ClaimedByService 
+@inject Services.GardenersService GardenersService 
+@attribute [Authorize(Roles = "admin")]
+<h3>Claim a Plot</h3>
+
+@if (ClaimedBy.Count == 0)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+<span size ="10" >@_gardener.FirstName @_gardener.LastName</span>
+<table class="table table-striped align-middle table-bordered">
+        <thead class="table-success">
+                <tr>
+                    <th>Plot Names</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+    <tbody>
+        @foreach (var ClaimedBy in ClaimedBy)
+        {
+            <tr>
+                <td>@ClaimedBy.Plots.PlotName</td>
+                <td> <button class="btn btn-danger btn-sm" @onclick="() => Delete(ClaimedBy.PlotsId, ClaimedBy.Id)">Delete</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+}
+
+@code {
+    [Parameter]
+    public int GardenerId { get; set; }
+    private List<ClaimedBy> ClaimedBy = new();
+    private Gardener _gardener;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        //get all the claim this gardeners has and his name and the plot names
+        ClaimedBy = await ClaimedByService.GetAllInfo(GardenerId);
+        _gardener = await GardenersService.GetByIdAsync(GardenerId);
+    }
+    private async Task Delete(int plotid , int GardenerId)
+    {
+        await ClaimedByService.DeleteAsync(plotid, GardenerId);
+        ClaimedBy = await ClaimedByService.GetTheOnesForThisGardenerAsync(GardenerId);
+    }
+    
+}

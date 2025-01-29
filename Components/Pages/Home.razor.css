@@ -1,0 +1,14 @@
+﻿body {
+    background-color: #9eecc4;
+}
+
+.text{
+    color:  white;
+    text-align: center;
+}
+.button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
