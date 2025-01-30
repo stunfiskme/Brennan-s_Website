@@ -1,27 +1,54 @@
-﻿@page "/About me"
+@page "/About"
 
-<PageTitle>About me</PageTitle>
+<PageTitle>About</PageTitle>
 
-<h1>About me</h1>
+<h1 class="Cent">About</h1>
    
 
-<div class="defined-area">
-    <p> I am a recent Computer Science graduate with proficiency in C#, Java, and Python. I have hands-on
-        experience with Blazor and MySQL and have built projects that demonstrate my ability to design scalable
-        systems and improve user experiences. I am eager to apply my technical skills and problem-solving
-        abilities in a professional environment, contributing to innovative projects and continuing my growth in
-        software development.</p>
-    
-   <p>I’m currently seeking full-time opportunities to contribute to exciting projects.
-       Feel free to email me at brennanhen@gmail.com.</p>  
-</div>
+<div ::deep class="defined-area">
+    <h3>About Me</h3>
+    <p> Recent Computer Science graduate with a strong foundation in programming languages, including C++, C#, Java, and Python.
+        Skilled in website development, database management, and and video game design.
+        Currently seeking a full-time position but open to part-time roles or internships to further develop
+        technical expertise in a dynamic and innovative environment.</p>
 
+    <p>I am currently seeking full-time positions but am open to part-time roles and/or internships.
+        Feel free to email me at brennanhen@gmail.com.</p>
+    <p>I plan to add small updates to this site for better performance and presentability, weekly, so come back often to see its progress</p>
+    <h3> What you can do on this site:</h3>
+    <p>This website was designed to showcase programming skills such as CRUD, RBAC, front-end development, web development, Blazor, and more.</p>
+    
+    <p>Guest: A guest can view different gardens, see the plots and who claimed them, check what crops are in them, and see the banned crops for each garden.</p>
+    <p>Gardener: A gardener is someone who has created an account. They can claim plots in different gardens and add crops to their claimed plots.</p>
+    <p>Leaders: A special type of gardener, there is 0-1 leader per garden. A leader can add plots, ban crops, and update plots or bans for their garden as needed.</p>
+</div>
+ 
+<div class="pic">
+<img src="Images\Stunfisk.jpg" alt="This is a pokemon called StunFisk" />
+<p>GitHub: stunfiskme</p>
+</div>
+<style>
+.Cent{
+text-align: center;
+ margin: 1px;
+ margin-bottom: 40px;
+}
+    .defined-area {
+        width: 600px;
+        height: 200px;
+        padding-left: 20px; 
+        margin: 5px;
+    }
+
+    .defined-area p {
+        text-align: left; /* Aligns the paragraph text to the left */
+    }
+    
+    .pic{
+    float: right;
+    }
+</style>
 @code {
     
 }
-@*
--revise <p>
--picture of me
-- galaary of images explaining showcaseback end skills 
-!!show off your frontend , explain the back end 
-*@
+
