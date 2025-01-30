@@ -22,8 +22,13 @@
     </ItemGroup>
 
     <ItemGroup>
+      <None Include="wwwroot\about_me.css" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Folder Include="Components\Controllers\" />
       <Folder Include="ViewsModels\" />
+      <Folder Include="wwwroot\Images\" />
     </ItemGroup>
 
     <ItemGroup>
